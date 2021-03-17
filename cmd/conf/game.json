@@ -1,0 +1,6 @@
+{
+    "MaxConn":50,
+    "MaxMsgLen":1024,
+    "WorkerPoolSize":2,
+    "WorkerTaskSize":10
+}
