@@ -33,7 +33,6 @@ func (m *ConnMgr) RemoveConn(conn iface.Iconn) {
 	defer m.connLock.Unlock()
 
 	delete(m.Conns, conn.GetConnID())
-	conn.Stop()
 }
 
 //关闭所有连接

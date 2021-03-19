@@ -1,6 +1,9 @@
 package iface
 
-import "net"
+import (
+	"context"
+	"net"
+)
 
 //连接接口
 type Iconn interface {
@@ -10,4 +13,13 @@ type Iconn interface {
 	Stop()             //关闭连接
 	//发送数据
 	SendMsg(uint32, []byte)
+
+	//获取上下文
+	GetContext() context.Context
+
+	//设置属性
+	WithValue(interface{}, interface{})
+
+	//获取配置的属性值
+	Value(interface{}) interface{}
 }

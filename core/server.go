@@ -14,6 +14,9 @@ type Server struct {
 	Port    int            //监听端口号
 	Router  iface.Irouter  //消息路由
 	ConnMgr iface.Iconnmgr //连接管理器
+
+	OnConnStartFunc func(iface.Iconn) //建立链接时的钩子方法
+	OnConnStopFunc  func(iface.Iconn) //链接退出时的钩子方法
 }
 
 func NewServer(host string, port int) iface.Iserver {
@@ -106,4 +109,30 @@ func (s *Server) Stop() {
 func (s *Server) SetLogger(logger iface.Ilogger) {
 	Logger.Print("[Server.SetLogger] ==========>")
 	Logger = logger
+}
+
+//设置连接建立时钩子方法
+func (s *Server) SetOnConnStartFunc(fn func(iface.Iconn)) {
+	s.OnConnStartFunc = fn
+}
+
+//设置连接关闭时钩子方法
+func (s *Server) SetOnConnStopFunc(fn func(iface.Iconn)) {
+	s.OnConnStopFunc = fn
+}
+
+//调用连接建立时钩子方法
+func (s *Server) CallOnConnStartFunc(conn iface.Iconn) {
+	if s.OnConnStartFunc != nil {
+		Logger.Printf("[Server.CallOnConnStartFunc] connId=%d", conn.GetConnID())
+		s.OnConnStartFunc(conn)
+	}
+}
+
+//调用连接关闭时钩子方法
+func (s *Server) CallOnConnStopFunc(conn iface.Iconn) {
+	if s.OnConnStopFunc != nil {
+		Logger.Printf("[Server.CallOnConnStopFunc] connId=%d", conn.GetConnID())
+		s.OnConnStopFunc(conn)
+	}
 }

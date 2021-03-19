@@ -3,6 +3,7 @@ package core
 import (
 	"context"
 	"net"
+	"sync"
 
 	"gitee.com/jianzhuliu/game/iface"
 )
@@ -15,6 +16,7 @@ type Connection struct {
 	Ctx        context.Context    //上下文
 	CancelFunc context.CancelFunc //上下文取消函数
 	isClosed   bool               //服务器是否关闭标识
+	connLock   sync.RWMutex       //读写保护锁
 
 	ChanMsg chan iface.Imsg //请求响应,读写分离模式
 }
@@ -89,6 +91,13 @@ func (c *Connection) startWriter() {
 
 //发送数据
 func (c *Connection) SendMsg(msgId uint32, data []byte) {
+	c.connLock.RLock()
+	defer c.connLock.RUnlock()
+
+	if c.isClosed {
+		return
+	}
+
 	//发送消息到管道
 	msg := NewMessage(msgId, data)
 	c.ChanMsg <- msg
@@ -100,10 +109,16 @@ func (c *Connection) Start() {
 	c.Ctx, c.CancelFunc = context.WithCancel(context.Background())
 	go c.startReader()
 	go c.startWriter()
+
+	//调用连接建立时构造函数
+	c.Server.CallOnConnStartFunc(c)
 }
 
 //关闭服务器
 func (c *Connection) Stop() {
+	c.connLock.Lock()
+	defer c.connLock.Unlock()
+
 	if c.isClosed {
 		return
 	}
@@ -115,6 +130,13 @@ func (c *Connection) Stop() {
 	c.isClosed = true
 	close(c.ChanMsg)
 
+	//移除连接管理器
+	c.Server.GetConnMgr().RemoveConn(c)
+
+	//调用连接关闭钩子函数
+	c.Server.CallOnConnStopFunc(c)
+
+	//关闭当前连接
 	c.GetConn().Close()
 }
 
@@ -126,4 +148,19 @@ func (c *Connection) GetConnID() int {
 //获取真实的连接对象
 func (c *Connection) GetConn() net.Conn {
 	return c.Conn
+}
+
+//获取上下文
+func (c *Connection) GetContext() context.Context {
+	return c.Ctx
+}
+
+//设置属性
+func (c *Connection) WithValue(key interface{}, value interface{}) {
+	c.Ctx = context.WithValue(c.Ctx, key, value)
+}
+
+//获取配置的属性值
+func (c *Connection) Value(key interface{}) interface{} {
+	return c.Ctx.Value(key)
 }
