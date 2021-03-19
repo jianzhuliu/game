@@ -51,3 +51,19 @@ func (m *ConnMgr) ClearAllConn() {
 func (m *ConnMgr) GetLen() int {
 	return len(m.Conns)
 }
+
+//获取所有的连接
+func (m *ConnMgr) GetAllConns() []iface.Iconn {
+	m.connLock.Lock()
+	defer m.connLock.Unlock()
+
+	//构建结果集
+	conns := make([]iface.Iconn, 0, m.GetLen())
+
+	//循环遍历
+	for connId := range m.Conns {
+		conns = append(conns, m.Conns[connId])
+	}
+
+	return conns
+}

@@ -1,0 +1,12 @@
+syntax="proto3"; //声明proto版本
+
+//声明包名
+package pb;
+
+//option go_package="pb/";
+
+//聊天
+message Talk {
+    string content = 1;
+}
+

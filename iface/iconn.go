@@ -22,4 +22,7 @@ type Iconn interface {
 
 	//获取配置的属性值
 	Value(interface{}) interface{}
+
+	//获取服务器对象
+	GetServer() Iserver
 }

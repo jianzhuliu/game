@@ -164,3 +164,8 @@ func (c *Connection) WithValue(key interface{}, value interface{}) {
 func (c *Connection) Value(key interface{}) interface{} {
 	return c.Ctx.Value(key)
 }
+
+//获取服务器对象
+func (c *Connection) GetServer() iface.Iserver {
+	return c.Server
+}

@@ -13,4 +13,7 @@ type Iconnmgr interface {
 
 	//获取总共连接数
 	GetLen() int
+
+	//获取所有的连接
+	GetAllConns() []Iconn
 }
